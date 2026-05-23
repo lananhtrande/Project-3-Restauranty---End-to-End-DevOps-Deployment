@@ -1,0 +1,55 @@
+version: '3.9'
+
+services:
+
+  mongo:
+    image: mongo:latest
+    container_name: restauranty-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  auth:
+    image: lananh03/restauranty-auth:latest
+    env_file:
+      - ./backend/auth/.env
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongo
+
+  discounts:
+    image: lananh03/restauranty-discounts:latest
+    env_file:
+      - ./backend/discounts/.env
+    ports:
+      - "3002:3002"
+    depends_on:
+      - mongo
+
+  items:
+    image: lananh03/restauranty-items:latest
+    env_file:
+      - ./backend/items/.env
+    ports:
+      - "3003:3003"
+    depends_on:
+      - mongo
+
+  client:
+    image: lananh03/restauranty-client:latest
+    ports:
+      - "3000:80"
+
+  haproxy:
+    image: lananh03/restauranty-haproxy:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - auth
+      - discounts
+      - items
+      - client
+volumes:
+  mongo-data:

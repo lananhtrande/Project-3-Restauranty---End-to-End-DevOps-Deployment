@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: restauranty
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+      - name: auth
+        image: restaurantyacrlananh.azurecr.io/auth:latest
+        ports:
+        - containerPort: 3001
+        envFrom:
+        - secretRef:
+            name: backend-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  namespace: restauranty
+
+spec:
+  selector:
+    app: auth
+  ports:
+  - port: 3001
+    targetPort: 3001

@@ -17,6 +17,9 @@ spec:
       containers:
       - name: discounts
         image: restaurantyacrlananh.azurecr.io/discounts:latest
+        envFrom:
+        - secretRef:
+            name: backend-secret
         ports:
         - containerPort: 3002
         envFrom:

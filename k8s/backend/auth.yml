@@ -17,6 +17,9 @@ spec:
       containers:
       - name: auth
         image: restaurantyacrlananh.azurecr.io/auth:latest
+        envFrom:
+        - secretRef:
+            name: backend-secret
         ports:
         - containerPort: 3001
         envFrom:

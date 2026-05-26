@@ -17,6 +17,9 @@ spec:
       containers:
       - name: items
         image: restaurantyacrlananh.azurecr.io/items:latest
+        envFrom:
+        - secretRef:
+            name: backend-secret
         ports:
         - containerPort: 3003
         envFrom:

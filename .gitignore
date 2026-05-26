@@ -7,3 +7,12 @@ server/.env
 backend/*/.env
 backend/*/node_modules
 mobile/.expo
+tls/
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+terraform.tfvars.json
+.terraform.lock.hcl

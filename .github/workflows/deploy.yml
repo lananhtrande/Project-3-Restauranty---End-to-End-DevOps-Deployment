@@ -8,13 +8,24 @@ on:
 
 jobs:
 
-  deploy:
+  build:
 
     runs-on: ubuntu-latest
 
+    strategy:
+
+      matrix:
+
+        service:
+          - auth
+          - items
+          - discounts
+          - client
+
     steps:
 
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
     - name: Docker Login
       uses: docker/login-action@v3
@@ -23,23 +34,47 @@ jobs:
         username: ${{ secrets.ACR_USERNAME }}
         password: ${{ secrets.ACR_PASSWORD }}
 
+    - name: Select folder
+      run: |
+
+        if [ "${{ matrix.service }}" = "client" ]; then
+          echo "DIR=apps/client" >> $GITHUB_ENV
+        else
+          echo "DIR=apps/backend/${{ matrix.service }}" >> $GITHUB_ENV
+        fi
+
     - name: Build
       run: |
+
         docker build \
-        -t restaurantyacrlananh.azurecr.io/auth:${{ github.sha }} \
-        ./auth
+        -t restaurantyacrlananh.azurecr.io/${{ matrix.service }}:${{ github.sha }} \
+        $DIR
 
     - name: Push
       run: |
+
         docker push \
-        restaurantyacrlananh.azurecr.io/auth:${{ github.sha }}
+        restaurantyacrlananh.azurecr.io/${{ matrix.service }}:${{ github.sha }}
+
+  deploy:
+
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v4
 
     - name: Configure kubectl
       run: |
-        mkdir -p ~/.kube
-        echo '${{ secrets.KUBE_CONFIG }}' > ~/.kube/config
 
-    - name: Deploy
+        mkdir -p ~/.kube
+
+        echo '${{ secrets.KUBE_CONFIG }}' \
+        > ~/.kube/config
+
+    - name: Update auth
       run: |
 
         kubectl set image \
@@ -47,9 +82,37 @@ jobs:
         auth=restaurantyacrlananh.azurecr.io/auth:${{ github.sha }} \
         -n restauranty
 
+    - name: Update items
+      run: |
+
+        kubectl set image \
+        deployment/items \
+        items=restaurantyacrlananh.azurecr.io/items:${{ github.sha }} \
+        -n restauranty
+
+    - name: Update discounts
+      run: |
+
+        kubectl set image \
+        deployment/discounts \
+        discounts=restaurantyacrlananh.azurecr.io/discounts:${{ github.sha }} \
+        -n restauranty
+
+    - name: Update client
+      run: |
+
+        kubectl set image \
+        deployment/client \
+        client=restaurantyacrlananh.azurecr.io/client:${{ github.sha }} \
+        -n restauranty
+
     - name: Verify
       run: |
 
-        kubectl rollout status \
-        deployment/auth \
-        -n restauranty
+        kubectl rollout status deployment/auth -n restauranty
+
+        kubectl rollout status deployment/items -n restauranty
+
+        kubectl rollout status deployment/discounts -n restauranty
+
+        kubectl rollout status deployment/client -n restauranty

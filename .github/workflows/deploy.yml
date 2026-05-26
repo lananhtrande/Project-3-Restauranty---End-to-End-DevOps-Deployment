@@ -6,9 +6,52 @@ on:
       - develop
       - main
 
+env:
+  REGISTRY: restaurantyacrlananh.azurecr.io
+  NAMESPACE: restauranty
+
 jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.detect.outputs.services }}
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+      with:
+        fetch-depth: 2
+
+    - id: detect
+
+      run: |
+
+        CHANGED="[]"
+
+        if git diff --name-only HEAD~1 HEAD | grep '^apps/backend/auth/'; then
+          CHANGED=$(echo "$CHANGED" | jq '. + ["auth"]')
+        fi
+
+        if git diff --name-only HEAD~1 HEAD | grep '^apps/backend/items/'; then
+          CHANGED=$(echo "$CHANGED" | jq '. + ["items"]')
+        fi
+
+        if git diff --name-only HEAD~1 HEAD | grep '^apps/backend/discounts/'; then
+          CHANGED=$(echo "$CHANGED" | jq '. + ["discounts"]')
+        fi
+
+        if git diff --name-only HEAD~1 HEAD | grep '^apps/client/'; then
+          CHANGED=$(echo "$CHANGED" | jq '. + ["client"]')
+        fi
+
+        echo "services=$CHANGED" >> $GITHUB_OUTPUT
 
   build:
+
+    needs: detect
+
+    if: needs.detect.outputs.services != '[]'
 
     runs-on: ubuntu-latest
 
@@ -17,24 +60,27 @@ jobs:
       matrix:
 
         service:
-          - auth
-          - items
-          - discounts
-          - client
+          ${{ fromJson(needs.detect.outputs.services) }}
 
     steps:
 
-    - name: Checkout
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     - name: Docker Login
+
       uses: docker/login-action@v3
+
       with:
-        registry: restaurantyacrlananh.azurecr.io
+        registry: ${{ env.REGISTRY }}
         username: ${{ secrets.ACR_USERNAME }}
         password: ${{ secrets.ACR_PASSWORD }}
 
-    - name: Select folder
+    - name: Setup Buildx
+
+      uses: docker/setup-buildx-action@v3
+
+    - name: Select Build Context
+
       run: |
 
         if [ "${{ matrix.service }}" = "client" ]; then
@@ -43,22 +89,27 @@ jobs:
           echo "DIR=apps/backend/${{ matrix.service }}" >> $GITHUB_ENV
         fi
 
-    - name: Build
-      run: |
+    - name: Build and Push
 
-        docker build \
-        -t restaurantyacrlananh.azurecr.io/${{ matrix.service }}:${{ github.sha }} \
-        $DIR
+      uses: docker/build-push-action@v6
 
-    - name: Push
-      run: |
+      with:
+        context: ${{ env.DIR }}
 
-        docker push \
-        restaurantyacrlananh.azurecr.io/${{ matrix.service }}:${{ github.sha }}
+        push: true
+
+        platforms: linux/amd64
+
+        tags: |
+          ${{ env.REGISTRY }}/${{ matrix.service }}:${{ github.sha }}
 
   deploy:
 
-    needs: build
+    needs:
+      - detect
+      - build
+
+    if: needs.detect.outputs.services != '[]'
 
     runs-on: ubuntu-latest
 
@@ -67,6 +118,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Configure kubectl
+
       run: |
 
         mkdir -p ~/.kube
@@ -74,45 +126,22 @@ jobs:
         echo '${{ secrets.KUBE_CONFIG }}' \
         > ~/.kube/config
 
-    - name: Update auth
+    - name: Deploy changed services
+
       run: |
 
-        kubectl set image \
-        deployment/auth \
-        auth=restaurantyacrlananh.azurecr.io/auth:${{ github.sha }} \
-        -n restauranty
+        SERVICES='${{ needs.detect.outputs.services }}'
 
-    - name: Update items
-      run: |
+        echo $SERVICES | jq -r '.[]' | while read SERVICE
+        do
 
-        kubectl set image \
-        deployment/items \
-        items=restaurantyacrlananh.azurecr.io/items:${{ github.sha }} \
-        -n restauranty
+          kubectl set image \
+          deployment/$SERVICE \
+          $SERVICE=${{ env.REGISTRY }}/$SERVICE:${{ github.sha }} \
+          -n ${{ env.NAMESPACE }}
 
-    - name: Update discounts
-      run: |
+          kubectl rollout status \
+          deployment/$SERVICE \
+          -n ${{ env.NAMESPACE }}
 
-        kubectl set image \
-        deployment/discounts \
-        discounts=restaurantyacrlananh.azurecr.io/discounts:${{ github.sha }} \
-        -n restauranty
-
-    - name: Update client
-      run: |
-
-        kubectl set image \
-        deployment/client \
-        client=restaurantyacrlananh.azurecr.io/client:${{ github.sha }} \
-        -n restauranty
-
-    - name: Verify
-      run: |
-
-        kubectl rollout status deployment/auth -n restauranty
-
-        kubectl rollout status deployment/items -n restauranty
-
-        kubectl rollout status deployment/discounts -n restauranty
-
-        kubectl rollout status deployment/client -n restauranty
+        done

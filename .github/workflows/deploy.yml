@@ -1,0 +1,60 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Login Azure
+      uses: azure/login@v2
+
+    - name: Login ACR
+      run: |
+        az acr login \
+        --name \
+        ${{ secrets.ACR_NAME }}
+
+    - name: Build auth
+      run: |
+
+        docker build \
+        -t \
+        restaurantyacrlananh.azurecr.io/auth:${{ github.sha }} \
+        ./auth
+
+    - name: Push auth
+      run: |
+
+        docker push \
+        restaurantyacrlananh.azurecr.io/auth:${{ github.sha }}
+
+    - name: AKS login
+      run: |
+
+        az aks get-credentials \
+        --resource-group \
+        ${{ secrets.AZURE_RESOURCE_GROUP }} \
+        --name \
+        ${{ secrets.AKS_CLUSTER }}
+
+    - name: Update deployment
+      run: |
+
+        kubectl set image \
+        deployment/auth \
+        auth=restaurantyacrlananh.azurecr.io/auth:${{ github.sha }} \
+        -n restauranty
+
+    - name: Verify rollout
+      run: |
+
+        kubectl rollout status \
+        deployment/auth \
+        -n restauranty

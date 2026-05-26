@@ -30,15 +30,15 @@ jobs:
         CHANGED="[]"
 
         if git diff --name-only HEAD~1 HEAD | grep '^apps/backend/auth/'; then
-          CHANGED=$(echo "$CHANGED" | jq '. + ["auth"]')
+          CHANGED=$(echo "$CHANGED" | jq -c '. + ["auth"]')
         fi
 
         if git diff --name-only HEAD~1 HEAD | grep '^apps/backend/items/'; then
-          CHANGED=$(echo "$CHANGED" | jq '. + ["items"]')
+          CHANGED=$(echo "$CHANGED" | jq -c '. + ["items"]')
         fi
 
         if git diff --name-only HEAD~1 HEAD | grep '^apps/backend/discounts/'; then
-          CHANGED=$(echo "$CHANGED" | jq '. + ["discounts"]')
+          CHANGED=$(echo "$CHANGED" | jq -c '. + ["discounts"]')
         fi
 
         if git diff --name-only HEAD~1 HEAD | grep '^apps/client/'; then

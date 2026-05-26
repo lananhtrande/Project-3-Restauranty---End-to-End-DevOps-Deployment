@@ -10,9 +10,11 @@ mobile/.expo
 tls/
 
 # Terraform
-**/.terraform/*
+**/.terraform/
 *.tfstate
 *.tfstate.*
 terraform.tfvars
 terraform.tfvars.json
+
+# Optional
 .terraform.lock.hcl

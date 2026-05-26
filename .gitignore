@@ -9,7 +9,6 @@ apps/backend/*/node_modules
 mobile/.expo
 tls/
 .env.*
-k8s/secrets/*.yml
 
 # Terraform
 **/.terraform/

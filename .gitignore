@@ -1,11 +1,11 @@
-client/node_modules
-mobile/node_modules
-server/node_modules
-client/.env
+apps/client/node_modules
+apps/mobile/node_modules
+apps/server/node_modules
+apps/client/.env
 mobile/.env
 server/.env
-backend/*/.env
-backend/*/node_modules
+apps/backend/*/.env
+apps/backend/*/node_modules
 mobile/.expo
 tls/
 

@@ -61,3 +61,13 @@ module "aks" {
   subnet_id = module.network.aks_subnet_id
 
 }
+
+module "key_vault" {
+  source = "../../modules/key_vault"
+
+  name = var.key_vault
+
+  location = var.location
+
+  resource_group_name = azurerm_resource_group.main.name
+}

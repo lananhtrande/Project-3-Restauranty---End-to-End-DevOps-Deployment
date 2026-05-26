@@ -3,11 +3,14 @@ kind: Ingress
 metadata:
   name: restauranty
   namespace: restauranty
+  annotations:
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: restauranty-cert-tls
 
 spec:
   ingressClassName: azure-application-gateway
   rules:
-  - http:
+  - host: restauranty.duckdns.org
+    http:
       paths:
       - path: /
         pathType: Prefix

@@ -1,0 +1,11 @@
+registry: restaurantyacrlananh.azurecr.io
+
+images:
+
+  auth: latest
+
+  items: latest
+
+  discounts: latest
+
+  client: latest

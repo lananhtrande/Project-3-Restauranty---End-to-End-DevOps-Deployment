@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+  name: discounts-egress-mongo
+
+  namespace: restauranty
+
+spec:
+
+  podSelector:
+
+    matchLabels:
+
+      app: discounts
+
+  policyTypes:
+
+  - Egress
+
+  egress:
+
+  - to:
+
+    - namespaceSelector:
+
+        matchLabels:
+
+          kubernetes.io/metadata.name: database
+
+      podSelector:
+
+        matchLabels:
+
+          app.kubernetes.io/name: mongodb
+
+    ports:
+
+    - protocol: TCP
+      port: 27017

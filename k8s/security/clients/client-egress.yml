@@ -1,0 +1,59 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+  name: client-egress
+  namespace: restauranty
+
+spec:
+
+  podSelector:
+
+    matchLabels:
+
+      app: client
+
+  policyTypes:
+
+  - Egress
+
+  egress:
+
+  - to:
+
+    - podSelector:
+
+        matchLabels:
+
+          app: auth
+
+    ports:
+
+    - protocol: TCP
+      port: 3001
+
+  - to:
+
+    - podSelector:
+
+        matchLabels:
+
+          app: items
+
+    ports:
+
+    - protocol: TCP
+      port: 3003
+
+  - to:
+
+    - podSelector:
+
+        matchLabels:
+
+          app: discounts
+
+    ports:
+
+    - protocol: TCP
+      port: 3002

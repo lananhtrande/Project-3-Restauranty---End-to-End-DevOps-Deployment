@@ -1,0 +1,66 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+  name: mongo-ingress
+  namespace: database
+
+spec:
+
+  podSelector:
+
+    matchLabels:
+
+      app.kubernetes.io/instance: mongo
+
+      app.kubernetes.io/name: mongodb
+
+  policyTypes:
+
+  - Ingress
+
+  ingress:
+
+  - from:
+
+    - namespaceSelector:
+
+        matchLabels:
+
+          kubernetes.io/metadata.name: restauranty
+
+      podSelector:
+
+        matchLabels:
+
+          app: auth
+
+    - namespaceSelector:
+
+        matchLabels:
+
+          kubernetes.io/metadata.name: restauranty
+
+      podSelector:
+
+        matchLabels:
+
+          app: items
+
+    - namespaceSelector:
+
+        matchLabels:
+
+          kubernetes.io/metadata.name: restauranty
+
+      podSelector:
+
+        matchLabels:
+
+          app: discounts
+
+    ports:
+
+    - protocol: TCP
+
+      port: 27017

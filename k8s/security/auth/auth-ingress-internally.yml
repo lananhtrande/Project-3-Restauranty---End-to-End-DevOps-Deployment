@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+  name: auth-ingress-internally
+  namespace: restauranty
+
+spec:
+
+  podSelector:
+
+    matchLabels:
+
+      app: auth
+
+  policyTypes:
+
+  - Ingress
+
+  ingress:
+
+  - from:
+
+    - ipBlock:
+
+        cidr: 10.0.0.0/8
+
+    ports:
+
+    - protocol: TCP
+      port: 3001

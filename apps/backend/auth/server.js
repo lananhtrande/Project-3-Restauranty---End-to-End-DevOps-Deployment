@@ -5,5 +5,5 @@ const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
-  console.log("GitOps test - Auth server is running...");
+  console.log("GitOps test - Auth triggered");
 });

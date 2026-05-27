@@ -8,11 +8,13 @@ on:
 
 env:
   REGISTRY: restaurantyacrlananh.azurecr.io
-  NAMESPACE: restauranty
 
 jobs:
+
   detect:
+
     runs-on: ubuntu-latest
+
     outputs:
       services: ${{ steps.detect.outputs.services }}
 
@@ -24,6 +26,7 @@ jobs:
         fetch-depth: 2
 
     - id: detect
+
       run: |
 
         FILES=$(git diff --name-only HEAD~1 HEAD)
@@ -31,24 +34,24 @@ jobs:
         CHANGED='[]'
 
         if echo "$FILES" | grep -q '^apps/backend/auth/'; then
-        CHANGED=$(echo "$CHANGED" | jq -c '. + ["auth"]')
+          CHANGED=$(echo "$CHANGED" | jq -c '. + ["auth"]')
         fi
 
         if echo "$FILES" | grep -q '^apps/backend/items/'; then
-        CHANGED=$(echo "$CHANGED" | jq -c '. + ["items"]')
+          CHANGED=$(echo "$CHANGED" | jq -c '. + ["items"]')
         fi
 
         if echo "$FILES" | grep -q '^apps/backend/discounts/'; then
-        CHANGED=$(echo "$CHANGED" | jq -c '. + ["discounts"]')
+          CHANGED=$(echo "$CHANGED" | jq -c '. + ["discounts"]')
         fi
 
         if echo "$FILES" | grep -q '^apps/client/'; then
-        CHANGED=$(echo "$CHANGED" | jq -c '. + ["client"]')
+          CHANGED=$(echo "$CHANGED" | jq -c '. + ["client"]')
         fi
 
         echo "Detected services: $CHANGED"
 
-        echo "services=${CHANGED}" >> "$GITHUB_OUTPUT"
+        echo "services=$CHANGED" >> "$GITHUB_OUTPUT"
 
   build:
 
@@ -69,13 +72,18 @@ jobs:
 
     - uses: actions/checkout@v4
 
+      with:
+        persist-credentials: true
+
     - name: Docker Login
 
       uses: docker/login-action@v3
 
       with:
         registry: ${{ env.REGISTRY }}
+
         username: ${{ secrets.ACR_USERNAME }}
+
         password: ${{ secrets.ACR_PASSWORD }}
 
     - name: Setup Buildx
@@ -97,54 +105,59 @@ jobs:
       uses: docker/build-push-action@v6
 
       with:
+
         context: ${{ env.DIR }}
 
         push: true
 
-        platforms: linux/amd64, linux/arm64
+        platforms: linux/amd64,linux/arm64
 
         tags: |
           ${{ env.REGISTRY }}/${{ matrix.service }}:${{ github.sha }}
 
-  deploy:
-
-    needs:
-      - detect
-      - build
-
-    if: needs.detect.outputs.services != '[]'
-
-    runs-on: ubuntu-latest
-
-    steps:
-
-    - uses: actions/checkout@v4
-
-    - name: Configure kubectl
+    - name: Install yq
 
       run: |
 
-        mkdir -p ~/.kube
+        sudo wget \
+        https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+        -O /usr/local/bin/yq
 
-        echo '${{ secrets.KUBE_CONFIG }}' \
-        > ~/.kube/config
+        sudo chmod +x /usr/local/bin/yq
 
-    - name: Deploy changed services
+    - name: Update Helm values
 
       run: |
 
-        SERVICES='${{ needs.detect.outputs.services }}'
+        yq \
+        -i \
+        '.images.${{ matrix.service }}="${{ github.sha }}"' \
+        helm/restauranty/values.yaml
 
-        echo $SERVICES | jq -r '.[]' | while read SERVICE
-        do
+        cat helm/restauranty/values.yaml
 
-          kubectl set image \
-          deployment/$SERVICE \
-          $SERVICE=${{ env.REGISTRY }}/$SERVICE:${{ github.sha }} \
-          -n ${{ env.NAMESPACE }}
+    - name: Commit values
 
-          kubectl rollout status \
-          deployment/$SERVICE \
-          -n ${{ env.NAMESPACE }}
+      run: |
 
-        done
+        git config \
+        user.email \
+        "github-actions@github.com"
+
+        git config \
+        user.name \
+        "github-actions"
+
+        git add \
+        helm/restauranty/values.yaml
+
+        git commit \
+        -m \
+        "deploy ${{ matrix.service }} ${{ github.sha }}" \
+        || true
+
+    - name: Push values
+
+      run: |
+
+        git push

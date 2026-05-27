@@ -6,6 +6,9 @@ on:
       - develop
       - main
 
+permissions:
+  contents: write
+
 env:
   REGISTRY: restaurantyacrlananh.azurecr.io
 
@@ -73,7 +76,7 @@ jobs:
     - uses: actions/checkout@v4
 
       with:
-        persist-credentials: true
+        fetch-depth: 0
 
     - name: Docker Login
 
@@ -115,6 +118,23 @@ jobs:
         tags: |
           ${{ env.REGISTRY }}/${{ matrix.service }}:${{ github.sha }}
 
+  deploy:
+
+    needs:
+      - detect
+      - build
+
+    if: needs.detect.outputs.services != '[]'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+      with:
+        fetch-depth: 0
+
     - name: Install yq
 
       run: |
@@ -129,37 +149,44 @@ jobs:
 
       run: |
 
-        yq \
-        -i \
-        '.images.${{ matrix.service }}="${{ github.sha }}"' \
-        helm/restauranty/values.yaml
+        SERVICES='${{ needs.detect.outputs.services }}'
+
+        echo "$SERVICES" \
+        | jq -r '.[]' \
+        | while read SERVICE
+        do
+
+          yq \
+          -i \
+          '.images.'"$SERVICE"'="${{ github.sha }}"' \
+          helm/restauranty/values.yaml
+
+        done
 
         cat helm/restauranty/values.yaml
 
-    - name: Commit values
+    - name: Commit changes
 
       run: |
 
         git config \
-        user.email \
-        "github-actions@github.com"
+        user.name \
+        github-actions
 
         git config \
-        user.name \
-        "github-actions"
+        user.email \
+        github-actions@github.com
 
         git add \
         helm/restauranty/values.yaml
 
         git commit \
         -m \
-        "deploy ${{ matrix.service }} ${{ github.sha }}" \
+        "deploy ${{ github.sha }}" \
         || true
 
-    - name: Push values
+    - name: Push changes
 
       run: |
 
-        git push \
-        https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} \
-        HEAD:${{ github.ref_name }}
+        git push

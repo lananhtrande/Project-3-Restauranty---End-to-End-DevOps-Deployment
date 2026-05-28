@@ -30,19 +30,33 @@ flowchart TD
 
     DNS[DuckDNS]
 
-    AppGW[Azure Application Gateway + WAF]
+    NSG[Azure NSG]
 
-    Ingress[AGIC Ingress Controller]
+    AppGW[Azure Application Gateway]
 
-    Client[React Client]
+    AGIC[AGIC Ingress Controller]
 
-    Auth[Auth Service]
+    subgraph AKS[AKS Cluster]
 
-    Items[Items Service]
+        Client[React Client]
 
-    Discounts[Discounts Service]
+        Auth[Auth Service]
 
-    Mongo[(MongoDB Replica Set)]
+        Items[Items Service]
+
+        Discounts[Discounts Service]
+
+        Mongo[(MongoDB Replica Set)]
+
+        Prometheus[Prometheus]
+
+        Grafana[Grafana]
+
+        Loki[Loki]
+
+        Alloy[Alloy Log Collector]
+
+    end
 
     Cloudinary[Cloudinary]
 
@@ -58,17 +72,19 @@ flowchart TD
 
     User --> DNS
 
-    DNS --> AppGW
+    DNS --> NSG
 
-    AppGW --> Ingress
+    NSG --> AppGW
 
-    Ingress --> Client
+    AppGW --> AGIC
 
-    Ingress --> Auth
+    AGIC --> Client
 
-    Ingress --> Items
+    AGIC --> Auth
 
-    Ingress --> Discounts
+    AGIC --> Items
+
+    AGIC --> Discounts
 
     Auth --> Mongo
 
@@ -89,6 +105,24 @@ flowchart TD
     GitHub --> Argo
 
     Argo --> AKS
+
+    Prometheus --> Auth
+
+    Prometheus --> Items
+
+    Prometheus --> Discounts
+
+    Grafana --> Prometheus
+
+    Alloy --> Loki
+
+    Alloy --> Auth
+
+    Alloy --> Items
+
+    Alloy --> Discounts
+
+    Alloy --> Client
 ```
 
 ---
@@ -108,7 +142,8 @@ flowchart TD
 | Frontend                | React                       |
 | Database                | MongoDB Replica Set         |
 | Infrastructure as Code  | Terraform                   |
-| Logging                 | Grafana Loki + Alloy        |
+| Monitoring              | Prometheus + Grafana        |
+| Logging                 | Loki + Alloy                |
 | Security                | Kubernetes Network Policies |
 
 ---
@@ -233,6 +268,13 @@ flowchart LR
 * Automated synchronization
 * Drift detection
 * Self-healing deployments
+
+## Observability
+
+- Prometheus metrics collection
+- Grafana dashboards
+- Loki centralized logging
+- Alloy log shipping
 
 ---
 

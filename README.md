@@ -119,76 +119,37 @@ flowchart TD
 .
 ├── apps
 │   ├── backend
-│   │   ├── auth
-│   │   ├── discounts
-│   │   └── items
-│   ├── client
-│   │   ├── Dockerfile
-│   │   ├── package-lock.json
-│   │   ├── package.json
-│   │   ├── public
-│   │   ├── README.md
-│   │   ├── src
-│   │   └── tailwind.config.js
-│   ├── docker-compose.yml
-│   └── haproxy
-│       ├── Dockerfile
-│       └── haproxy.cfg
+│   └── client
+│
+├── ARCHITECTURE.md
 ├── argocd
 │   └── restauranty.yml
+├── COMPLIANCE.md
+├── docs
+│   └── images
 ├── helm
 │   └── restauranty
-│       ├── Chart.yaml
-│       ├── templates
-│       └── values.yaml
 ├── k8s
 │   ├── backend
-│   │   ├── auth.yml
-│   │   ├── discounts.yml
-│   │   └── items.yml
 │   ├── client
-│   │   └── client.yml
 │   ├── hpa
-│   │   ├── auth.yml
-│   │   ├── client.yml
-│   │   ├── discounts.yml
-│   │   └── items.yml
 │   ├── ingress
-│   │   └── restauranty.yml
 │   ├── namespaces
-│   │   └── namespaces.yml
 │   ├── secrets
-│   │   └── backend-secret.yml
 │   └── security
-│       ├── auth
-│       ├── clients
-│       ├── common
-│       ├── discounts
-│       ├── items
-│       └── mongo
 ├── logging
 │   ├── alloy
-│   │   └── alloy-values.yml
 │   └── loki
-│       └── loki-values.yml
 ├── README.md
+├── RUNBOOK.md
 ├── scripts
 │   ├── build-push-acr.sh
 │   └── deploy.sh
+├── SECURITY.md
 ├── terraform
 │   ├── environments
-│   │   └── prod
 │   └── modules
-│       ├── acr
-│       ├── aks
-│       ├── application_gateway
-│       ├── key_vault
-│       └── network
 └── tls
-    ├── restauranty.crt
-    ├── restauranty.csr
-    ├── restauranty.key
-    └── restauranty.pfx
 ```
 
 ---

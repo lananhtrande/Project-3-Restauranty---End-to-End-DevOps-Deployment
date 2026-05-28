@@ -1,97 +1,304 @@
-# Restauranty
+# README.md
 
-A restaurant management platform built with a **microservices architecture**: 3 Node.js/Express backends + a React frontend, unified behind HAProxy path-based routing.
+# Restauranty — End-to-End DevOps Deployment
 
-## Architecture
+Restauranty is a cloud-native microservices application deployed on Azure Kubernetes Service (AKS) using a modern DevOps and GitOps workflow.
 
+The project demonstrates:
+
+* Kubernetes microservices architecture
+* GitOps with ArgoCD
+* Helm-based deployments
+* CI/CD with GitHub Actions
+* Azure Container Registry (ACR)
+* Azure Application Gateway Ingress Controller (AGIC)
+* Network Policies for pod isolation
+* MongoDB replica set on Kubernetes
+* TLS termination with custom domain
+* Infrastructure as Code with Terraform
+* Centralized logging with Loki + Alloy
+* Monitoring with Grafana and Prometheus
+
+---
+
+# Live Architecture
+
+```mermaid
+flowchart TD
+
+    User[User Browser]
+
+    DNS[DuckDNS]
+
+    AppGW[Azure Application Gateway + WAF]
+
+    Ingress[AGIC Ingress Controller]
+
+    Client[React Client]
+
+    Auth[Auth Service]
+
+    Items[Items Service]
+
+    Discounts[Discounts Service]
+
+    Mongo[(MongoDB Replica Set)]
+
+    Cloudinary[Cloudinary]
+
+    GitHub[GitHub Repository]
+
+    Actions[GitHub Actions]
+
+    ACR[Azure Container Registry]
+
+    Argo[ArgoCD]
+
+    Helm[Helm Chart]
+
+    User --> DNS
+
+    DNS --> AppGW
+
+    AppGW --> Ingress
+
+    Ingress --> Client
+
+    Ingress --> Auth
+
+    Ingress --> Items
+
+    Ingress --> Discounts
+
+    Auth --> Mongo
+
+    Items --> Mongo
+
+    Discounts --> Mongo
+
+    Items --> Cloudinary
+
+    GitHub --> Actions
+
+    Actions --> ACR
+
+    Actions --> Helm
+
+    Helm --> GitHub
+
+    GitHub --> Argo
+
+    Argo --> AKS
 ```
-                         ┌────────────────────────┐
-                         │   HAProxy / Ingress    │
-    Browser ───────────► │       (port 80)        │
-                         └───────────┬────────────┘
-                                     │
-            ┌────────────────────────┼─────────────────────────┐
-            │                        │                         │
-       /api/auth/*             /api/items/*             /api/discounts/*
-            │                        │                         │
-   ┌────────▼────────┐     ┌─────────▼─────────┐    ┌─────────▼──────────┐
-   │  Auth Service   │     │  Items Service    │    │ Discounts Service  │
-   │   (port 3001)   │     │   (port 3003)     │    │   (port 3002)      │
-   └────────┬────────┘     └─────────┬─────────┘    └──────────┬─────────┘
-            │                        │                         │
-            └────────────────────────┼─────────────────────────┘
-                                     │
-                              ┌──────▼──────┐
-                              │   MongoDB   │
-                              │ (port 27017)│
-                              └─────────────┘
+
+---
+
+# Tech Stack
+
+| Category                | Technology                  |
+| ----------------------- | --------------------------- |
+| Cloud                   | Microsoft Azure             |
+| Container Orchestration | Kubernetes (AKS)            |
+| GitOps                  | ArgoCD                      |
+| Packaging               | Helm                        |
+| CI/CD                   | GitHub Actions              |
+| Container Registry      | Azure Container Registry    |
+| Ingress                 | Azure Application Gateway   |
+| Backend                 | Node.js / Express           |
+| Frontend                | React                       |
+| Database                | MongoDB Replica Set         |
+| Infrastructure as Code  | Terraform                   |
+| Logging                 | Grafana Loki + Alloy        |
+| Security                | Kubernetes Network Policies |
+
+---
+
+# Project Structure
+
+```text
+.
+├── apps
+│   ├── backend
+│   │   ├── auth
+│   │   ├── discounts
+│   │   └── items
+│   ├── client
+│   │   ├── Dockerfile
+│   │   ├── package-lock.json
+│   │   ├── package.json
+│   │   ├── public
+│   │   ├── README.md
+│   │   ├── src
+│   │   └── tailwind.config.js
+│   ├── docker-compose.yml
+│   └── haproxy
+│       ├── Dockerfile
+│       └── haproxy.cfg
+├── argocd
+│   └── restauranty.yml
+├── helm
+│   └── restauranty
+│       ├── Chart.yaml
+│       ├── templates
+│       └── values.yaml
+├── k8s
+│   ├── backend
+│   │   ├── auth.yml
+│   │   ├── discounts.yml
+│   │   └── items.yml
+│   ├── client
+│   │   └── client.yml
+│   ├── hpa
+│   │   ├── auth.yml
+│   │   ├── client.yml
+│   │   ├── discounts.yml
+│   │   └── items.yml
+│   ├── ingress
+│   │   └── restauranty.yml
+│   ├── namespaces
+│   │   └── namespaces.yml
+│   ├── secrets
+│   │   └── backend-secret.yml
+│   └── security
+│       ├── auth
+│       ├── clients
+│       ├── common
+│       ├── discounts
+│       ├── items
+│       └── mongo
+├── logging
+│   ├── alloy
+│   │   └── alloy-values.yml
+│   └── loki
+│       └── loki-values.yml
+├── README.md
+├── scripts
+│   ├── build-push-acr.sh
+│   └── deploy.sh
+├── terraform
+│   ├── environments
+│   │   └── prod
+│   └── modules
+│       ├── acr
+│       ├── aks
+│       ├── application_gateway
+│       ├── key_vault
+│       └── network
+└── tls
+    ├── restauranty.crt
+    ├── restauranty.csr
+    ├── restauranty.key
+    └── restauranty.pfx
 ```
 
-## Microservices
+---
 
-| Service | Port | Path | Responsibilities |
-|---------|------|------|-----------------|
-| **Auth** | 3001 | `/api/auth/*` | User signup, login, JWT authentication |
-| **Discounts** | 3002 | `/api/discounts/*` | Coupon and campaign management |
-| **Items** | 3003 | `/api/items/*` | Menu items, dietary categories, orders |
-| **Frontend** | 3000 | `/` | React SPA (admin dashboard) |
+# CI/CD + GitOps Workflow
 
-## Quick Start
+```mermaid
+flowchart LR
 
-### 1. Start MongoDB
+    Dev[Developer Push]
+
+    Actions[GitHub Actions]
+
+    Build[Build Docker Images]
+
+    Push[Push Images to ACR]
+
+    Update[Update Helm values.yaml]
+
+    Git[Push Changes to GitHub]
+
+    Argo[ArgoCD Detects Changes]
+
+    Helm[Helm Renders Templates]
+
+    AKS[Deploy to AKS]
+
+    Dev --> Actions
+
+    Actions --> Build
+
+    Build --> Push
+
+    Push --> Update
+
+    Update --> Git
+
+    Git --> Argo
+
+    Argo --> Helm
+
+    Helm --> AKS
+```
+
+---
+
+# Features
+
+## Infrastructure
+
+* Terraform-based infrastructure provisioning
+* Modular Terraform architecture
+* AKS cluster
+* Azure Container Registry
+* Application Gateway
+* Virtual Network and Subnets
+* TLS certificates
+
+## Kubernetes
+
+* Namespaces
+* Deployments
+* Services
+* Ingress
+* Horizontal Pod Autoscaler
+* Secrets
+* Network Policies
+
+## Security
+
+* HTTPS with TLS
+* NSG protection
+* Pod-to-pod isolation with NetworkPolicies
+* Database namespace isolation
+* Least-privilege network communication
+* Secret-based configuration
+
+## GitOps
+
+* Declarative deployments
+* Automated synchronization
+* Drift detection
+* Self-healing deployments
+
+---
+
+# Deployment
+
+## Build and Deploy
 
 ```bash
-docker run -d \
-  --name my-mongo \
-  -p 27017:27017 \
-  -v mongo-data:/data/db \
-  mongo:latest
+git push origin develop
 ```
 
-### 2. Start each microservice
+The deployment pipeline automatically:
 
-```bash
-# Terminal 1 - Auth
-cd backend/auth && npm install && npm start
+1. Detects changed services
+2. Builds Docker images
+3. Pushes images to ACR
+4. Updates Helm values
+5. Pushes deployment state to Git
+6. ArgoCD syncs AKS
 
-# Terminal 2 - Discounts
-cd backend/discounts && npm install && npm start
+---
 
-# Terminal 3 - Items
-cd backend/items && npm install && npm start
+# Access
 
-# Terminal 4 - Frontend
-cd client && npm install && npm start
-```
+| Service  | URL                                                                |
+| -------- | ------------------------------------------------------------------ |
+| Frontend | [https://restauranty.duckdns.org](https://restauranty.duckdns.org) |
+| ArgoCD   | Internal / LoadBalancer                                            |
+|          |                                                                    |
 
-### 3. Start HAProxy
-
-```bash
-haproxy -f haproxy.cfg
-```
-
-Access the app at **http://localhost/**
-
-## Environment Variables
-
-Each microservice uses the same set of environment variables (see `.env.example` in each service folder):
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `SECRET` | JWT signing key | `MySecret1!` |
-| `MONGODB_URI` | MongoDB connection string | `mongodb://127.0.0.1:27017/restauranty` |
-| `CLOUD_NAME` | Cloudinary cloud name | _(ask instructor)_ |
-| `CLOUD_API_KEY` | Cloudinary API key | _(ask instructor)_ |
-| `CLOUD_API_SECRET` | Cloudinary API secret | _(ask instructor)_ |
-| `PORT` | Service port | `3001` / `3002` / `3003` |
-
-For the frontend, use the `REACT_APP_` prefix: `REACT_APP_API_URL=http://localhost:80`
-
-## Tech Stack
-
-- **Frontend**: React 18, React Router 6, Tailwind CSS, Axios, React Icons
-- **Backend**: Express, Mongoose, JWT (jsonwebtoken + express-jwt), bcryptjs
-- **Image Storage**: Cloudinary (via multer-storage-cloudinary)
-- **Monitoring**: Prometheus metrics (`/metrics` endpoint on each backend service)
-- **Routing**: HAProxy (local) / Kubernetes Ingress (production)
-- **Database**: MongoDB

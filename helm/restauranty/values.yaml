@@ -1,6 +1,6 @@
 registry: restaurantyacrlananh.azurecr.io
 images:
-  auth: bf6916df51e20a6030001c8ff5f238b21ceb0d97
+  auth: a5b8aa62c5ff279b10e80d0b77e5b7a687ec92d6
   items: latest
   discounts: latest
   client: latest

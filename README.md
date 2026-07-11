@@ -1,527 +1,282 @@
-# Restauranty — End-to-End DevOps Deployment
+# 🍽️ Restauranty Platform
 
-Restauranty is a cloud-native microservices platform deployed on Azure Kubernetes Service (AKS) using modern DevOps, GitOps, Kubernetes, and cloud security practices.
+> **Production-Style Cloud Platform on Microsoft Azure**
 
-The project demonstrates production-style platform engineering concepts including:
+A cloud-native platform engineered to demonstrate modern Platform Engineering practices using **Azure Kubernetes Service (AKS)**, **Terraform**, **GitOps**, **GitHub Actions**, and enterprise-grade observability.
 
-* Kubernetes microservices architecture
-* GitOps with ArgoCD
-* Helm-based deployments
-* CI/CD with GitHub Actions
-* Azure Kubernetes Service (AKS)
-* Azure Container Registry (ACR)
-* Azure Application Gateway Ingress Controller (AGIC)
-* Azure WAF_v2
-* Kubernetes Network Policies
-* MongoDB replica set deployment
-* Terraform Infrastructure as Code
-* Prometheus + Grafana monitoring
-* Loki + Alloy centralized logging
-* TLS/HTTPS ingress security
+Unlike a traditional application-focused project, Restauranty emphasizes the design, automation, deployment, and operation of a production-style cloud platform.
 
 ---
 
-# Architecture Overview
+## Key Highlights
+
+- ☁️ Azure Kubernetes Service (AKS)
+- 🏗️ Infrastructure as Code with Terraform
+- 🔄 GitOps Continuous Delivery using ArgoCD
+- 🚀 CI/CD automation with GitHub Actions
+- 🔐 Secure secret management with Azure Key Vault
+- 🛡️ Azure Application Gateway + Web Application Firewall (WAF)
+- 📦 Helm-based Kubernetes deployments
+- 📈 Horizontal Pod Autoscaler (HPA)
+- 📊 Production monitoring with Prometheus & Grafana
+- 📝 Centralized logging with Loki
+- 🍃 MongoDB ReplicaSet deployment
+- 🐳 Dockerized microservices
+
+---
+
+# Platform Architecture
 
 ```mermaid
 flowchart TD
 
-    User[User Browser]
+Developer --> GitHub
 
-    DNS[DuckDNS]
+GitHub --> GitHubActions["GitHub Actions"]
 
-    NSG[Azure Network Security Group]
+GitHubActions --> Build["Docker Build"]
 
-    AppGW[Azure Application Gateway + WAF]
+Build --> ACR["Azure Container Registry"]
 
-    AGIC[AGIC Ingress Controller]
+GitHubActions --> Terraform
 
-    subgraph AKS[AKS Cluster]
+Terraform --> Azure
 
-        Client[React Client]
+GitHubActions --> ArgoCD
 
-        Auth[Auth Service]
+ArgoCD --> AKS
 
-        Items[Items Service]
+Internet --> AppGW["Azure Application Gateway + WAF"]
 
-        Discounts[Discounts Service]
+AppGW --> Ingress
 
-        Mongo[(MongoDB Replica Set)]
+Ingress --> Frontend
 
-        Prometheus[Prometheus]
+Ingress --> Backend
 
-        Grafana[Grafana]
+Backend --> MongoDB["MongoDB ReplicaSet"]
 
-        Loki[Loki]
+Backend --> Redis
 
-        Alloy[Alloy Log Collector]
+AKS --> Prometheus
 
-    end
+Prometheus --> Grafana
 
-    Cloudinary[Cloudinary]
+AKS --> Loki
 
-    GitHub[GitHub Repository]
-
-    Actions[GitHub Actions]
-
-    ACR[Azure Container Registry]
-
-    Argo[ArgoCD]
-
-    Helm[Helm Chart]
-
-    User --> DNS
-
-    DNS --> NSG
-
-    NSG --> AppGW
-
-    AppGW --> AGIC
-
-    AGIC --> Client
-
-    AGIC --> Auth
-
-    AGIC --> Items
-
-    AGIC --> Discounts
-
-    Auth --> Mongo
-
-    Items --> Mongo
-
-    Discounts --> Mongo
-
-    Items --> Cloudinary
-
-    GitHub --> Actions
-
-    Actions --> ACR
-
-    Actions --> Helm
-
-    Helm --> GitHub
-
-    GitHub --> Argo
-
-    Argo --> AKS
-
-    Prometheus --> Auth
-
-    Prometheus --> Items
-
-    Prometheus --> Discounts
-
-    Grafana --> Prometheus
-
-    Alloy --> Loki
-
-    Alloy --> Auth
-
-    Alloy --> Items
-
-    Alloy --> Discounts
-
-    Alloy --> Client
+AKS --> KeyVault["Azure Key Vault"]
 ```
 
 ---
 
-# CI/CD + GitOps Workflow
+# Platform Overview
 
-```mermaid
-flowchart LR
+Restauranty is designed to simulate how a modern cloud-native platform is built and operated in production.
 
-    Dev[Developer Push]
+The project focuses on Platform Engineering rather than application development by covering the complete software delivery lifecycle:
 
-    Actions[GitHub Actions]
-
-    Build[Build Docker Images]
-
-    Push[Push Images to ACR]
-
-    Update[Update Helm values.yaml]
-
-    Git[Push Changes to GitHub]
-
-    Argo[ArgoCD Detects Changes]
-
-    Helm[Helm Renders Templates]
-
-    AKS[Deploy to AKS]
-
-    Dev --> Actions
-
-    Actions --> Build
-
-    Build --> Push
-
-    Push --> Update
-
-    Update --> Git
-
-    Git --> Argo
-
-    Argo --> Helm
-
-    Helm --> AKS
-```
+- Infrastructure provisioning
+- Kubernetes platform operations
+- GitOps deployment
+- CI/CD automation
+- Security
+- Observability
+- High availability
+- Scalability
 
 ---
 
-# Tech Stack
+# Technology Stack
 
-| Category                | Technology                              |
-| ----------------------- | --------------------------------------- |
-| Cloud                   | Microsoft Azure                         |
-| Container Orchestration | Kubernetes (AKS)                        |
-| GitOps                  | ArgoCD                                  |
-| Packaging               | Helm                                    |
-| CI/CD                   | GitHub Actions                          |
-| Container Registry      | Azure Container Registry                |
-| Ingress                 | Azure Application Gateway + AGIC        |
-| Frontend                | React                                   |
-| Backend                 | Node.js / Express                       |
-| Database                | MongoDB Replica Set                     |
-| Infrastructure as Code  | Terraform                               |
-| Monitoring              | Prometheus + Grafana                    |
-| Logging                 | Loki + Alloy                            |
-| Security                | Azure WAF + Kubernetes Network Policies |
-
----
-
-# Kubernetes Architecture
-
-The platform consists of multiple microservices deployed within AKS.
-
-| Service   | Purpose                       | Port  |
-| --------- | ----------------------------- | ----- |
-| client    | React frontend                | 80    |
-| auth      | Authentication service        | 3001  |
-| items     | Product management service    | 3003  |
-| discounts | Coupon management service     | 3002  |
-| mongodb   | Stateful replica set database | 27017 |
+| Category | Technologies |
+|------------|-----------------------------|
+| Cloud | Microsoft Azure |
+| Kubernetes | Azure Kubernetes Service |
+| IaC | Terraform |
+| GitOps | ArgoCD |
+| CI/CD | GitHub Actions |
+| Containers | Docker |
+| Packaging | Helm |
+| Database | MongoDB ReplicaSet |
+| Cache | Redis |
+| Monitoring | Prometheus, Grafana |
+| Logging | Loki |
+| Secrets | Azure Key Vault |
+| Networking | Azure Application Gateway, WAF |
+| Languages | Node.js, React |
 
 ---
 
 # Infrastructure Components
 
-## Azure Kubernetes Service (AKS)
+## Compute
 
-The platform runs on Azure Kubernetes Service with:
+- Azure Kubernetes Service (AKS)
+- Multiple Deployments
+- Horizontal Pod Autoscaler
 
-* Multiple backend microservices
-* Namespace isolation
-* Horizontal Pod Autoscalers
-* Ingress routing
-* NetworkPolicies
-* Stateful workloads
+## Networking
+
+- Azure Virtual Network
+- Application Gateway
+- Azure Load Balancer
+- Ingress Controller
+- Web Application Firewall
+
+## Security
+
+- Azure Key Vault
+- Kubernetes Secrets
+- TLS Certificates
+- RBAC
+
+## Storage
+
+- Persistent Volumes
+- MongoDB ReplicaSet
+- Azure Storage
+
+## Observability
+
+- Prometheus
+- Grafana
+- Loki
 
 ---
 
-## Azure Application Gateway + AGIC
-
-Ingress traffic is managed through:
-
-* Azure Application Gateway
-* AGIC (Application Gateway Ingress Controller)
-* HTTPS/TLS termination
-* Path-based routing
-* WAF protection
-
----
-
-## Azure WAF_v2
-
-The project includes Azure Web Application Firewall (WAF) configured with:
-
-* OWASP Core Rule Set 3.2
-* Detection mode
-* Centralized firewall logging
-* Azure Monitor integration
-
----
-
-# Security Architecture
-
-Restauranty implements layered cloud-native security across Azure infrastructure, Kubernetes networking, ingress traffic, and application workloads.
-
-## Security Layers
+# Deployment Workflow
 
 ```text
-Internet
+Developer
+
 ↓
-Azure Network Security Group (NSG)
+
+Git Push
+
 ↓
-Azure Application Gateway + WAF
+
+GitHub
+
 ↓
-AGIC Ingress Controller
+
+GitHub Actions
+
 ↓
-Kubernetes Network Policies
+
+Build Docker Images
+
 ↓
-Microservices
+
+Push to Azure Container Registry
+
+↓
+
+Terraform Provisioning
+
+↓
+
+ArgoCD GitOps Synchronization
+
+↓
+
+Azure Kubernetes Service
+
+↓
+
+Application Available
 ```
 
 ---
 
-## Kubernetes Network Policies
+# CI/CD Pipeline
 
-The cluster uses Kubernetes NetworkPolicies for pod-level microsegmentation.
+The platform uses GitHub Actions to automate:
 
-Implemented policies include:
-
-* Default deny ingress/egress
-* Controlled pod-to-pod communication
-* Namespace isolation
-* MongoDB access restrictions
-* DNS egress policies
-* Internal-only database communication
-
-Allowed traffic examples:
-
-| Source    | Destination |
-| --------- | ----------- |
-| client    | auth        |
-| client    | items       |
-| client    | discounts   |
-| auth      | mongodb     |
-| items     | mongodb     |
-| discounts | mongodb     |
+- Build
+- Test
+- Docker image creation
+- Container Registry publishing
+- Infrastructure deployment
+- GitOps synchronization
 
 ---
 
-## WAF Monitoring
+# Security
 
-WAF logs are centralized through Azure Monitor and Log Analytics.
+Security was considered throughout the platform design.
 
-Current WAF configuration:
+Implemented features include:
 
-| Feature                   | Status    |
-| ------------------------- | --------- |
-| WAF SKU                   | WAF_v2    |
-| Rule Set                  | OWASP 3.2 |
-| Mode                      | Detection |
-| Firewall Logs             | Enabled   |
-| Log Analytics Integration | Enabled   |
+- Azure Key Vault
+- Kubernetes Secrets
+- TLS
+- Web Application Firewall
+- Secure container registry authentication
+- Least privilege access
 
 ---
 
-## WAF Detection Mode Stabilization
+# Repository Structure
 
-The WAF currently operates in Detection Mode to safely observe application traffic patterns and identify false positives before enabling active request blocking.
+```
+restauranty-platform/
 
-This stabilization phase includes:
-
-* Monitoring suspicious requests
-* Reviewing OWASP rule matches
-* Validating frontend/API compatibility
-* Observing authentication flows
-* Testing upload endpoints
-* Evaluating legitimate traffic behavior
-
-Future migration path:
-
-```text
-Detection
-↓
-False-positive analysis
-↓
-Rule tuning
-↓
-Prevention mode
+├── backend/
+├── frontend/
+├── terraform/
+├── kubernetes/
+├── helm/
+├── monitoring/
+├── database/
+├── scripts/
+├── docs/
+└── .github/
 ```
 
 ---
 
-# Observability Stack
+# Lessons Learned
 
-The platform includes a full observability stack.
+During this project I gained practical experience with:
 
-## Monitoring
-
-Prometheus collects metrics from Kubernetes workloads and services.
-
-Grafana provides dashboards and visualization.
-
-Metrics include:
-
-* Pod health
-* Resource utilization
-* Service availability
-* Kubernetes metrics
-
----
-
-## Centralized Logging
-
-Logging pipeline:
-
-```text
-Applications
-↓
-Alloy
-↓
-Loki
-↓
-Grafana
-```
-
-Features:
-
-* Centralized log aggregation
-* Pod-level log analysis
-* Kubernetes troubleshooting
-* Operational visibility
-
----
-
-# Terraform Infrastructure
-
-Infrastructure is provisioned using Terraform modules.
-
-## Modules
-
-| Module              | Purpose                     |
-| ------------------- | --------------------------- |
-| network             | Virtual network and subnets |
-| aks                 | AKS cluster                 |
-| acr                 | Azure Container Registry    |
-| application_gateway | Ingress + WAF               |
-| key_vault           | Secret management           |
-
----
-
-# GitOps Deployment Model
-
-Deployments follow GitOps principles.
-
-## Workflow
-
-1. Developer pushes code
-2. GitHub Actions builds Docker images
-3. Images are pushed to ACR
-4. Helm values are updated automatically
-5. ArgoCD detects Git changes
-6. AKS reconciles desired state
-
-Benefits:
-
-* Declarative deployments
-* Automatic reconciliation
-* Drift detection
-* Version-controlled infrastructure
-* Rollback through Git history
-
----
-
-# Project Structure
-
-```text
-.
-├── apps
-│   ├── backend
-│   │   ├── auth
-│   │   ├── discounts
-│   │   └── items
-│   └── client
-│
-├── argocd
-│   └── restauranty.yml
-│
-├── helm
-│   └── restauranty
-│       ├── Chart.yaml
-│       ├── values.yaml
-│       └── templates
-│
-├── k8s
-│   ├── backend
-│   ├── ingress
-│   ├── security
-│   ├── secrets
-│   └── hpa
-│
-├── logging
-│   ├── alloy
-│   └── loki
-│
-├── terraform
-│   ├── environments
-│   └── modules
-│
-└── .github
-    └── workflows
-```
-
----
-
-# Deployment
-
-## CI/CD Deployment
-
-```bash
-git push origin develop
-```
-
-The pipeline automatically:
-
-1. Detects changed services
-2. Builds multi-architecture Docker images
-3. Pushes images to ACR
-4. Updates Helm deployment values
-5. Pushes deployment state to Git
-6. ArgoCD synchronizes AKS
-
----
-
-# Access
-
-| Service  | URL                             |
-| -------- | ------------------------------- |
-| Frontend | https://restauranty.duckdns.org |
+- Designing Kubernetes platforms on Azure
+- Infrastructure as Code using Terraform
+- GitOps workflows with ArgoCD
+- Building CI/CD pipelines using GitHub Actions
+- Operating MongoDB on Kubernetes
+- Monitoring Kubernetes workloads
+- Managing secrets securely
+- Troubleshooting Kubernetes networking
+- Designing production-style cloud infrastructure
 
 ---
 
 # Future Improvements
 
+The platform is intentionally designed as an evolving engineering project.
+
 Planned enhancements include:
 
-* WAF Prevention Mode
-* Custom WAF rules
-* Login rate limiting
-* Geo-blocking policies
-* Grafana WAF dashboards
-* Azure Key Vault CSI Driver
-* OPA/Gatekeeper policy enforcement
-* Kubernetes RBAC hardening
-* Image vulnerability scanning
-* Prometheus alerting
-* Service mesh adoption
+- Trivy image scanning
+- Velero backup & disaster recovery
+- Policy as Code (Kyverno / OPA)
+- Azure Monitor integration
+- Cost optimization
+- Multi-environment deployments
+- Automated security scanning
 
 ---
 
-# Key Learning Areas
+# About This Project
 
-This project demonstrates hands-on experience with:
+This project was developed as a hands-on Platform Engineering initiative to explore production-style cloud infrastructure on Microsoft Azure.
 
-* Kubernetes administration
-* GitOps workflows
-* Cloud-native security
-* Infrastructure as Code
-* CI/CD engineering
-* Azure cloud architecture
-* Observability platforms
-* Container orchestration
-* Microservices networking
-* Production-style platform operations
+The primary objective is to demonstrate modern DevOps and Platform Engineering practices including Infrastructure as Code, GitOps, Kubernetes operations, CI/CD automation, observability, and secure cloud deployments.
+
+Application source code originated from an existing sample application. The cloud infrastructure, Kubernetes platform, deployment automation, GitOps workflow, monitoring stack, and operational architecture were designed and implemented as part of this Platform Engineering project.
 
 ---
 
-# Author
+## License
 
-Lan Anh Tran
-
-Cloud / DevOps / Platform Engineering Project
-
-```
-```
+MIT License

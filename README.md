@@ -1,4 +1,4 @@
-# 🍽️ Restauranty Platform
+# 🍽️ Restauranty Cloud Platform
 
 > **Production-Style Cloud Platform on Microsoft Azure**
 
